@@ -52,7 +52,7 @@ contract Polly is Ownable, ERC1155 {
         return bytes(baseUri).length != 0 ? string(abi.encodePacked(baseUri, tokenId.toString(), '.json')) : '';
     }
 
-	function setBaseUri(string memory uri) external onlyOwner {
+	function setUri(string memory uri) external onlyOwner {
 		baseUri = uri;
 	}
 }
