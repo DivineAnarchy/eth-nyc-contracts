@@ -39,20 +39,26 @@ contract Fusion is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, ERC1155Hol
 	}
 
 	modifier canChangeUri(uint256[] memory tokens, string calldata ipfs_uri, bytes calldata signature) {
-		uint tokenAmount = tokens.length;
-
 		require(_signer == keccak256(abi.encodePacked(
 			msg.sender,
 			tokens,
 			ipfs_uri
 		)).toEthSignedMessageHash().recover(signature), "Not approved URI");
 
-		uint baseModelCount = 0;
+		_;
+	}
+
+	modifier requirePollyApproval() {
+		require(IERC1155(_pollyContract).isApprovedForAll(msg.sender, address(this)), "Not approved to wrap");
+
+		_;
+	}
+
+	modifier requirePollyOwnership(uint256[] memory tokens) {
+		uint tokenAmount = tokens.length;
 		for(uint i; i < tokenAmount; i++) {
 			require(IERC1155(_pollyContract).balanceOf(msg.sender, tokens[i]) > 0, string(abi.encodePacked("Do not own token id: ", tokens[i].toString())));
 		}
-
-		require(IERC1155(_pollyContract).isApprovedForAll(msg.sender, address(this)), "Not approved to wrap");
 
 		_;
 	}
@@ -65,7 +71,7 @@ contract Fusion is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, ERC1155Hol
 		_signer = signer;
 	}
 
-	function wrap(uint256[] calldata tokens, string calldata ipfs_uri, bytes calldata signature) public canChangeUri(tokens, ipfs_uri, signature) {
+	function wrap(uint256[] calldata tokens, string calldata ipfs_uri, bytes calldata signature) public canChangeUri(tokens, ipfs_uri, signature) requirePollyOwnership(tokens) requirePollyApproval() {
 		captureTokens(tokens, msg.sender);
 		uint256 tokenId = safeMint(msg.sender);
 
@@ -83,11 +89,10 @@ contract Fusion is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, ERC1155Hol
 		delete tokenStorage[token_id];
 	}
 
-	function updateWrap(uint256[] calldata wrapTokens, uint256[] calldata unwrapTokens) public {
-		// verify tokens, ipfs uri in sig - canChangeUri
-		// move tokens into contract - captureTokens
-		// release tokens - releaseTokens
-		// update storage state
+	// This could be way more efficient but I dont have time
+	function updateWrap(uint256 token_id, uint256[] calldata tokens, string calldata ipfs_uri, bytes calldata signature) public {
+		unwrap(token_id);
+		wrap(tokens, ipfs_uri, signature);
 	}
 
 	function captureTokens(uint256[] calldata tokens, address addr) private {

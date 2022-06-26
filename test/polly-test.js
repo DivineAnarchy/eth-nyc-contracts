@@ -95,5 +95,28 @@ context("PollyMorph", function() {
         expect(tokenTypeBalance).to.equal(1);
       }
     });
+
+    it("Update wrap", async function() {
+      const tokens_wrapping           = [1, 2, 5, 8, 9];
+      const wrapped_token_id = await this.wrapToken(this.wallet, tokens_wrapping);
+
+      await this.pollyContract.mintToken(this.wallet, 7, 1);
+
+      const { tokens, uri, signature } = await this.signUriChange(this.wallet, [1, 2, 5, 7, 9 ], "t.com/2");
+      await this.fusionContract.updateWrap(wrapped_token_id, tokens, uri, signature);
+
+      const returnToken = await this.pollyContract.balanceOf(this.wallet, 8);
+      expect(returnToken).to.equal(1);
+
+      for(const token_type of tokens) {
+        const tokenTypeBalance = await this.pollyContract.balanceOf(this.wallet, token_type);
+        expect(tokenTypeBalance).to.equal(0);
+      }
+
+      const fusionBalance = await this.fusionContract.walletOfOwner(this.wallet);
+      expect(fusionBalance.length).to.equal(1);
+      const tokenUri = await this.fusionContract.tokenURI(fusionBalance[0].toNumber());
+      expect(tokenUri).to.equal(uri);
+    });
   });
 });
