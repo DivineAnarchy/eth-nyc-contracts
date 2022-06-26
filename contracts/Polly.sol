@@ -29,9 +29,18 @@ contract Polly is Ownable, ERC1155 {
 		mintToken(msg.sender, FIRE_POLLY, 1);
 		mintToken(msg.sender, WATER_POLLY, 1);
 		mintToken(msg.sender, HALO, 1);
+		mintToken(msg.sender, HORNS, 1);
+		mintToken(msg.sender, MASK, 1);
 		mintToken(msg.sender, SKATEBOARD, 1);
+		mintToken(msg.sender, SURFBOARD, 1);
+		mintToken(msg.sender, BUSTERSWORD, 1);
 		mintToken(msg.sender, RPG, 1);
 		mintToken(msg.sender, BLUE_BG, 1);
+		mintToken(msg.sender, CYAN_BG, 1);
+		mintToken(msg.sender, GREEN_BG, 1);
+		mintToken(msg.sender, ORANGE_BG, 1);
+		mintToken(msg.sender, PINK_BG, 1);
+		mintToken(msg.sender, WHITE_BG, 1);
 
 		baseUri = _uri;
 	}

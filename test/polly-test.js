@@ -10,11 +10,11 @@ context("PollyMorph", function() {
     this.pollyUri = "https://divineanarchy.mypinata.cloud/ipfs/QmPgoaegWhiR6WiuWcbNqiUVziMKSUMhpZa4jVqSmL47rA/";
     this.pollyContract = await deployContract("Polly", [ this.pollyUri ]);
 
-    this.fusionContract = await deployContract("Fusion", [ this.pollyContract.address ]);
+    this.serverSigner   = addr1;
+    this.fusionContract = await deployContract("Fusion", [ this.pollyContract.address, this.serverSigner.address ]);
     this.wallet         = owner.address;
     this.tokensOwned    = [0, 1, 2, 5, 8, 9];
     this.wallets        = [owner, addr1, addr2, addr3];
-    this.serverSigner   = addr1;
 
     await this.fusionContract.setSigner(this.serverSigner.address);
     this.signUriChange = async(wallet, tokens, uri) => {
