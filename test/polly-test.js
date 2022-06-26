@@ -7,7 +7,7 @@ context("PollyMorph", function() {
   beforeEach(async function() {
 	  const [ owner, addr1, addr2, addr3 ] = await ethers.getSigners();
 
-    this.pollyUri = "https://gateway.pinata.cloud/ipfs/QmXYQu6dwcDqiMGeZuz815dHYE4WkUS8EKME8ycn8EEdA6/";
+    this.pollyUri = "https://divineanarchy.mypinata.cloud/ipfs/QmPgoaegWhiR6WiuWcbNqiUVziMKSUMhpZa4jVqSmL47rA/";
     this.pollyContract = await deployContract("Polly", [ this.pollyUri ]);
 
     this.fusionContract = await deployContract("Fusion", [ this.pollyContract.address ]);

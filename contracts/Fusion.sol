@@ -34,8 +34,9 @@ contract Fusion is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, ERC1155Hol
 	address private _signer;
 	address private _pollyContract;
 
-	constructor(address pollyContract) ERC721("Fusion", "FUSE") {
+	constructor(address pollyContract, address signer) ERC721("Fusion", "FUSE") {
 		_pollyContract = pollyContract;
+		_signer        = signer;
 	}
 
 	modifier canChangeUri(uint256[] memory tokens, string calldata ipfs_uri, bytes calldata signature) {

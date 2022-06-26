@@ -1,25 +1,15 @@
 const hre         = require("hardhat");
 const ethers      = hre.ethers;
+const { deploy }  = require('./helpers');
 
-// npx hardhat run --network rinkeby scripts/sa-deploy.js
+// npx hardhat run --network matic scripts/deploy.js
 async function main() {
-    const Contract = await ethers.getContractFactory("BaseModel");
-    const contract = await Contract.deploy("https://testing.com");
+    const pollyContract = await deploy("Polly", "0x763378cCf967EB8d54367484eA92056c0677b0D2", ["https://divineanarchy.mypinata.cloud/ipfs/QmPgoaegWhiR6WiuWcbNqiUVziMKSUMhpZa4jVqSmL47rA/"], true);
 
-    await contract.deployed();
-    console.log("Contract deployed to:", contract.address);
+    const fusionContract = await deploy("Fusion", "0x763378cCf967EB8d54367484eA92056c0677b0D2", [
+      pollyContract.address, "0x2e8DcDE53a25351B76C1b7cb91a6d89A471D22B8"
+    ], true);
 
-    // const contract = await deploy("BaseModel", "0x0109492Ee14ACD69Cb15cc2E13d96829d7bba73A", ["https://testing.com"], true);
-    // TESTING PURPOSES below
-    // const timestamp = await getBlockTimestamp();
-    // console.log(`Setting timestamp to: ${timestamp}`);
-    // const tx = await contract.setAuctionStart(timestamp);
-    // await tx.wait(2);
-    // console.log('Mint from dutch');
-    // const price = await contract.getAuctionPrice();
-    // await contract.dutchMint(3, { value: price.mul(3), gasLimit: 120000 });
-    // console.log('Withdraw funds spent');
-    // await contract.withdrawAll({ gasLimit: 120000 });
 }
 
 // We recommend this pattern to be able to use async/await everywhere
