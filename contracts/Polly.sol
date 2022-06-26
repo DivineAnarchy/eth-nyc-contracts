@@ -3,56 +3,47 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Polly is Ownable, ERC1155 {
-    uint256 public constant FIRE_POLLY = 0;
-    uint256 public constant WATER_POLLY = 1;
-    uint256 public constant BOARDS = 2;
-    uint256 public constant WEAPON = 3;
-    uint256 public constant HEADBAND = 4;
-    string public baseUri;
+	using Strings for uint256;
 
-    constructor(string memory _uri) ERC1155(_uri) {
-        _mint(msg.sender, FIRE_POLLY, 1, "");
-        _mint(msg.sender, WATER_POLLY, 1, "");
-        _mint(msg.sender, BOARDS, 1, "");
-        _mint(msg.sender, WEAPON, 1, "");
-        _mint(msg.sender, HEADBAND, 1, "");
+    uint public constant FIREPOLLY   = 0;
+    uint public constant WATERPOLLY  = 1;
+    uint public constant HALO        = 2;
+    uint public constant HORNS       = 3;
+    uint public constant MASK        = 4;
+    uint public constant SKATEBOARD  = 5;
+    uint public constant SURFBOARD   = 6;
+    uint public constant BUSTERSWORD = 7;
+    uint public constant RPG         = 8;
+	string public baseUri;
 
-        baseUri = _uri;
-    }
+	constructor(string memory _uri) ERC1155(_uri) {
+		mintToken(msg.sender, FIREPOLLY, 1);
+		mintToken(msg.sender, WATERPOLLY, 1);
+		mintToken(msg.sender, HALO, 1);
+		mintToken(msg.sender, SKATEBOARD, 1);
+		mintToken(msg.sender, RPG, 1);
 
-    modifier onlyUser() {
-        require(tx.origin == msg.sender, "The caller is another contract");
-        _;
-    }
+		baseUri = _uri;
+	}
 
-    function mintFirePolly() public payable onlyUser {
-        _mint(msg.sender, FIRE_POLLY, 1, "");
-    }
+	function mintToken(address to, uint256 tokenType, uint256 quantity) public {
+		require(exists(tokenType), "Nonexstent token");
+		_mint(to, tokenType, quantity, "");
+	}
 
-    function mintWaterPolly() public payable onlyUser {
-        _mint(msg.sender, WATER_POLLY, 1, "");
-    }
+	function uri(uint256 tokenId) public view override returns (string memory) {
+		require(exists(tokenId), "Nonexistent token");
+		return bytes(baseUri).length != 0 ? string(abi.encodePacked(baseUri, tokenId.toString())) : '';
+	}
 
-    function mintBoard() public payable onlyUser {
-        _mint(msg.sender, BOARDS, 1, "");
-    }
+	function exists(uint256 _id) public pure returns (bool) {
+		return _id >= 0 && _id <= 8;
+	}
 
-    function mintWeapon() public payable onlyUser {
-        _mint(msg.sender, WEAPON, 1, "");
-    }
-
-    function mintHeadband() public payable onlyUser {
-        _mint(msg.sender, HEADBAND, 1, "");
-    }
-
-    function uri(uint256 tokenId) public view override returns (string memory) {
-        require(exists(tokenId), "Nonexistent token");
-        return bytes(baseUri).length != 0 ? string(abi.encodePacked(baseUri, tokenId.toString(), '.json')) : '';
-    }
-
-    function setUri(string memory uri) external onlyOwner {
-        baseUri = uri;
-    }
+	function setUri(string memory _uri) external onlyOwner {
+		baseUri = _uri;
+	}
 }
