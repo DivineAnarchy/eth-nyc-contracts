@@ -18,10 +18,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
 import "hardhat/console.sol";
 
-contract Fusion is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
+contract Fusion is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, ERC1155Holder {
 	using ECDSA for bytes32;
 	using Strings for uint256;
 
@@ -65,42 +66,68 @@ contract Fusion is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
 	}
 
 	function wrap(uint256[] calldata tokens, string calldata ipfs_uri, bytes calldata signature) public canChangeUri(tokens, ipfs_uri, signature) {
-		// verify tokens, ipfs uri in signature
-		// move tokens into contract - captureTokens
-		// mint token
-		// save token state for wrapped tokens
+		captureTokens(tokens, msg.sender);
+		uint256 tokenId = safeMint(msg.sender);
+
+		tokenStorage[tokenId].uri    = ipfs_uri;
+		tokenStorage[tokenId].tokens = tokens;
 	}
 
 	function unwrap(uint256 token_id) public {
-		// burn token
-		// release tokens - releaseTokens
-		// delete storage
+		uint[] memory tokens = tokenStorage[token_id].tokens;
+
+		super.burn(token_id);
+
+		releaseTokens(tokens, msg.sender);
+
+		delete tokenStorage[token_id];
 	}
 
 	function updateWrap(uint256[] calldata wrapTokens, uint256[] calldata unwrapTokens) public {
-		// verify tokens, ipfs uri in sig
+		// verify tokens, ipfs uri in sig - canChangeUri
 		// move tokens into contract - captureTokens
 		// release tokens - releaseTokens
 		// update storage state
 	}
 
 	function captureTokens(uint256[] calldata tokens, address addr) private {
-		// move tokens into contract
+		// If I had more time this would be better as a batch
+		uint256 tokenLength = tokens.length;
+		for(uint i; i < tokenLength; i++) {
+			IERC1155(_pollyContract).safeTransferFrom(addr, address(this), tokens[i], 1, "");
+		}
 	}
 
-	function releaseTokens(uint256[] calldata tokens, address addr) private {
-		// move tokens out of contract into wallet
+	function releaseTokens(uint256[] memory tokens, address addr) private {
+		// If I had more time this would be better as a batch
+		uint256 tokenLength = tokens.length;
+		for(uint i; i < tokenLength; i++) {
+			IERC1155(_pollyContract).safeTransferFrom(address(this), addr, tokens[i], 1, "");
+		}
 	}
 
 	function safeMint(address to) private returns (uint256) {
 		uint256 tokenId = totalSupply() + 1;
 		_safeMint(to, tokenId);
-		/* TODO: Save wrapped tokens and uri */
 
 		return tokenId;
 	}
 
+	function walletOfOwner(address owner) public view returns (uint256[] memory) {
+		uint256 tokenCount      = super.balanceOf(owner);
+		uint256[] memory result = new uint256[](tokenCount);
+
+		for(uint256 i = 0; i < tokenCount; i++) {
+			result[i] = super.tokenOfOwnerByIndex(owner, i);
+		}
+		return result;
+	}
+
 	// The following functions are overrides required by Solidity.
+	function tokenURI(uint256 tokenId) public  view override(ERC721) returns (string memory) {
+		return tokenStorage[tokenId].uri;
+	}
+
 	function _beforeTokenTransfer(address from, address to, uint256 tokenId)
 		internal
 		override(ERC721, ERC721Enumerable)
@@ -111,7 +138,7 @@ contract Fusion is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
 	function supportsInterface(bytes4 interfaceId)
 		public
 		view
-		override(ERC721, ERC721Enumerable)
+		override(ERC721, ERC721Enumerable, ERC1155Receiver)
 		returns (bool)
 	{
 		return super.supportsInterface(interfaceId);
